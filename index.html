@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>College Interview AI - Real-Time Voice (v2.0)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: 
+                0 30px 60px rgba(0,0,0,0.12),
+                0 10px 20px rgba(0,0,0,0.08),
+                inset 0 1px 0 rgba(255,255,255,0.6);
+            overflow: hidden;
+            position: relative;
+            z-index: 2;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 50%, #00d2ff 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.3; }
+        }
+
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 12px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.3em;
+            opacity: 0.95;
+            font-weight: 400;
+            position: relative;
+            z-index: 1;
+        }
+
+        .setup-section {
+            padding: 30px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .setup-section {
+            padding: 40px;
+            background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+            border-bottom: 1px solid rgba(225, 229, 233, 0.3);
+        }
+
+        .form-group {
+            margin-bottom: 28px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+            transition: color 0.3s ease;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 
+                0 0 0 4px rgba(79, 172, 254, 0.1),
+                0 4px 12px rgba(79, 172, 254, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .form-group input::placeholder {
+            color: #a0aec0;
+            font-weight: 400;
+        }
+
+        .btn {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.3px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn-primary:disabled {
+            background: linear-gradient(135deg, #cbd5e0 0%, #a0aec0 100%);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            opacity: 0.6;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(72, 187, 120, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 101, 101, 0.3);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(245, 101, 101, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(113, 128, 150, 0.3);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(113, 128, 150, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f6d55c 0%, #ed8936 100%);
+            color: #744210;
+            box-shadow: 0 4px 15px rgba(246, 213, 92, 0.3);
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(246, 213, 92, 0.4);
+        }
+
+        .interview-section {
+            padding: 30px;
+            background: linear-gradient(135deg, #fafbff 0%, #ffffff 100%);
+        }
+
+        .status-indicator {
+            padding: 16px 24px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 15px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .status-indicator::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .status-idle {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            color: #1565c0;
+            box-shadow: 0 4px 15px rgba(21, 101, 192, 0.1);
+        }
+
+        .status-listening {
+            background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+            color: #2e7d32;
+            box-shadow: 0 4px 15px rgba(46, 125, 50, 0.1);
+            animation: listeningPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes listeningPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .status-error {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            color: #c62828;
+            box-shadow: 0 4px 15px rgba(198, 40, 40, 0.1);
+        }
+
+        .timer {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(79, 172, 254, 0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            font-weight: 500;
+        }
+
+        .timer div {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .timer span {
+            font-weight: 600;
+            color: #4facfe;
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .transcript-area {
+            margin-bottom: 24px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
+            border-radius: 16px;
+            min-height: 80px;
+            border: 1px solid rgba(79, 172, 254, 0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            position: relative;
+        }
+
+        .transcript-area::before {
+            content: 'Live Transcript';
+            position: absolute;
+            top: -10px;
+            left: 16px;
+            background: white;
+            padding: 0 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #4facfe;
+            border-radius: 4px;
+        }
+
+        .chat-messages {
+            max-height: 450px;
+            overflow-y: auto;
+            padding: 24px;
+            background: linear-gradient(135deg, #fafbff 0%, #ffffff 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(79, 172, 254, 0.05);
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.02);
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #4facfe;
+            border-radius: 4px;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            padding: 16px 20px;
+            border-radius: 16px;
+            position: relative;
+            animation: messageSlide 0.3s ease-out;
+            transition: all 0.3s ease;
+        }
+
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .message-ai {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            margin-left: 40px;
+            border: 1px solid rgba(33, 150, 243, 0.1);
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.1);
+        }
+
+        .message-ai::before {
+            content: 'AI';
+            position: absolute;
+            top: -8px;
+            left: 16px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .message-user {
+            background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+            margin-right: 40px;
+            border: 1px solid rgba(76, 175, 80, 0.1);
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.1);
+        }
+
+        .message-user::before {
+            content: 'You';
+            position: absolute;
+            top: -8px;
+            right: 16px;
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .message-encouragement {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            margin-left: 20px;
+            margin-right: 20px;
+            border: 1px solid rgba(255, 193, 7, 0.2);
+            box-shadow: 0 2px 8px rgba(255, 193, 7, 0.15);
+            text-align: center;
+            font-style: italic;
+        }
+
+        .message-encouragement::before {
+            content: 'Encouragement';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            font-style: normal;
+        }
+
+        .message strong {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .message small {
+            display: block;
+            margin-top: 8px;
+            opacity: 0.6;
+            font-size: 12px;
+        }
+
+        .message-content {
+            line-height: 1.6;
+        }
+
+        .message-content h2 {
+            color: #2d3748;
+            font-size: 1.4em;
+            font-weight: 700;
+            margin: 16px 0 8px 0;
+            padding-bottom: 4px;
+            border-bottom: 2px solid #4facfe;
+        }
+
+        .message-content h3 {
+            color: #4a5568;
+            font-size: 1.2em;
+            font-weight: 600;
+            margin: 12px 0 6px 0;
+        }
+
+        .message-content ul {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+
+        .message-content li {
+            margin: 4px 0;
+            color: #4a5568;
+        }
+
+        .message-content hr {
+            border: none;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #4facfe, transparent);
+            margin: 16px 0;
+        }
+
+        .message-content strong {
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        .feedback-highlight {
+            background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
+            border-left: 4px solid #4facfe;
+            padding: 12px 16px;
+            margin: 8px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .history-panel {
+            margin-top: 24px;
+            padding: 32px;
+            background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+            border-radius: 20px;
+            border: 1px solid rgba(79, 172, 254, 0.1);
+            box-shadow: 0 8px 32px rgba(79, 172, 254, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .history-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 50%, #00d2ff 100%);
+        }
+
+        .history-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .history-controls .btn {
+            padding: 10px 20px;
+            font-size: 14px;
+            border-radius: 10px;
+        }
+
+        .history-table-wrap {
+            overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .history-chart {
+            margin-bottom: 24px;
+            padding: 20px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(79, 172, 254, 0.08);
+            border: 1px solid rgba(79, 172, 254, 0.05);
+        }
+
+        .history-chart-title {
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #2d3748;
+            font-size: 16px;
+            letter-spacing: 0.3px;
+        }
+
+        .history-empty {
+            text-align: center;
+            color: #718096;
+            padding: 32px;
+            background: linear-gradient(135deg, #f7fafc 0%, #ffffff 100%);
+            border-radius: 12px;
+            border: 2px dashed #cbd5e0;
+            font-weight: 500;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .history-table th,
+        .history-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .history-table th {
+            background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+            border-bottom: 2px solid #4facfe;
+        }
+
+        .history-table tr:hover {
+            background: #f8f9ff;
+            transition: background 0.2s ease;
+        }
+
+        .progress-card {
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(79, 172, 254, 0.08);
+            border: 1px solid rgba(79, 172, 254, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .progress-card h4 {
+            margin-bottom: 16px;
+            color: #2d3748;
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: 0.3px;
+        }
+
+        .progress-card div {
+            margin-bottom: 10px;
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        .progress-card ul {
+            margin-top: 16px;
+            padding-left: 0;
+            list-style: none;
+        }
+
+        .progress-card li {
+            margin-bottom: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f5f9;
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .progress-card li::before {
+            content: '>';
+            position: absolute;
+            left: 0;
+            color: #4facfe;
+            font-weight: 600;
+        }
+
+        .feedback-structured {
+            background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
+            padding: 24px;
+            border-radius: 16px;
+            margin-top: 20px;
+            border: 1px solid rgba(79, 172, 254, 0.1);
+            box-shadow: 0 4px 16px rgba(79, 172, 254, 0.08);
+        }
+
+        .score-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .score-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 16px rgba(79, 172, 254, 0.08);
+            border: 1px solid rgba(79, 172, 254, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .score-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .score-card .label {
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .score-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #4facfe;
+            text-shadow: 0 2px 4px rgba(79, 172, 254, 0.1);
+        }
+
+        .feedback-section {
+            margin-bottom: 24px;
+        }
+
+        .feedback-section h4 {
+            margin-bottom: 12px;
+            color: #2d3748;
+            font-weight: 600;
+            font-size: 16px;
+            letter-spacing: 0.3px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 16px;
+            }
+
+            .header h1 {
+                font-size: 2.2em;
+            }
+
+            .header p {
+                font-size: 1.1em;
+            }
+
+            .setup-section,
+            .interview-section {
+                padding: 20px;
+            }
+
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .btn {
+                width: 100%;
+                padding: 14px 20px;
+            }
+
+            .message-user,
+            .message-ai {
+                margin-left: 10px;
+                margin-right: 10px;
+            }
+
+            .history-panel {
+                padding: 20px;
+                margin-top: 16px;
+            }
+
+            .score-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .timer {
+                flex-direction: column;
+                gap: 8px;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                margin: 5px;
+                border-radius: 12px;
+            }
+
+            .header {
+                padding: 24px 20px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .message-ai,
+            .message-user {
+                margin-left: 5px;
+                margin-right: 5px;
+                padding: 12px 16px;
+            }
+
+            .btn {
+                padding: 12px 16px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Setup Section -->
+        <div id="setup-section" class="setup-section">
+            <div class="form-group">
+                <label for="user-id">User ID (for tracking progress)</label>
+                <input type="text" id="user-id" placeholder="e.g., hp_user_1 or your email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="resume-upload">Upload Your Resume (PDF)</label>
+                <input type="file" id="resume-upload" accept=".pdf" required>
+            </div>
+
+            
+            <button id="start-interview-btn" class="btn btn-primary" disabled>
+                Start Interview
+            </button>
+        </div>
+
+        <!-- Interview Section -->
+        <div id="interview-section" class="interview-section hidden">
+            <div id="status-indicator" class="status-indicator status-idle">
+                <span id="status-text">Ready to start interview</span>
+            </div>
+
+            <div class="timer">
+                <div>Time Remaining: <span id="time-remaining">30:00</span></div>
+                <div>Elapsed: <span id="time-elapsed">00:00</span></div>
+            </div>
+
+            <div class="controls">
+                <button id="start-mic-btn" class="btn btn-success">Start Microphone</button>
+                <button id="stop-mic-btn" class="btn btn-danger" disabled>Stop Microphone</button>
+                <button id="end-interview-btn" class="btn btn-secondary">End Interview</button>
+                <button id="view-history-btn" class="btn btn-primary">View Full History</button>
+                <button id="restart-interview-btn" class="btn btn-warning">Start New Interview</button>
+            </div>
+
+            <div class="transcript-area">
+                <div id="live-transcript"></div>
+            </div>
+
+            <div class="chat-messages" id="chat-messages">
+                <!-- Messages will be added here -->
+            </div>
+
+            <div id="history-panel" class="history-panel hidden">
+                <div class="history-controls">
+                    <button id="export-history-btn" class="btn btn-secondary">Export CSV</button>
+                </div>
+                <div id="history-summary"></div>
+                <div id="history-chart" class="history-chart"></div>
+                <div id="history-table" class="history-table-wrap"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let sessionId = null;
+        let recognition = null;
+        let isListening = false;
+        let startTime = null;
+        let timerInterval = null;
+        let currentTranscript = '';
+        let chatHistory = [];
+        let shouldKeepListening = false;
+        let currentUserId = '';
+        let progressCache = null;
+        let isHistoryLoading = false;
+        let isExportingHistory = false;
+
+        // DOM elements
+        const setupSection = document.getElementById('setup-section');
+        const interviewSection = document.getElementById('interview-section');
+        const userIdInput = document.getElementById('user-id');
+        const resumeUpload = document.getElementById('resume-upload');
+        const startInterviewBtn = document.getElementById('start-interview-btn');
+        const startMicBtn = document.getElementById('start-mic-btn');
+        const stopMicBtn = document.getElementById('stop-mic-btn');
+        const endInterviewBtn = document.getElementById('end-interview-btn');
+        const viewHistoryBtn = document.getElementById('view-history-btn');
+        const restartInterviewBtn = document.getElementById('restart-interview-btn');
+        const statusIndicator = document.getElementById('status-indicator');
+        const statusText = document.getElementById('status-text');
+        const liveTranscript = document.getElementById('live-transcript');
+        const chatMessages = document.getElementById('chat-messages');
+        const timeRemaining = document.getElementById('time-remaining');
+        const timeElapsed = document.getElementById('time-elapsed');
+        const historyPanel = document.getElementById('history-panel');
+        const exportHistoryBtn = document.getElementById('export-history-btn');
+        const historySummary = document.getElementById('history-summary');
+        const historyChart = document.getElementById('history-chart');
+        const historyTable = document.getElementById('history-table');
+
+        // Backend URL - Dynamic port detection
+        const BACKEND_URL = window.location.origin;
+
+        // Initialize speech recognition
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+            if (!SpeechRecognition) {
+                alert('Speech recognition is not supported in this browser. Please use Chrome or Edge.');
+                return false;
+            }
+
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = function() {
+                isListening = true;
+                shouldKeepListening = true;
+                updateStatus('listening', 'Listening... Speak now');
+                startMicBtn.disabled = true;
+                stopMicBtn.disabled = false;
+            };
+
+            recognition.onresult = function(event) {
+                let finalTranscript = '';
+                let interimTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+
+                if (finalTranscript) {
+                    currentTranscript += finalTranscript;
+                    updateLiveTranscript(currentTranscript, interimTranscript);
+
+                    // Send to backend for processing
+                    processTranscript(currentTranscript);
+                    currentTranscript = '';
+                } else {
+                    updateLiveTranscript(currentTranscript, interimTranscript);
+                }
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                updateStatus('idle', 'Error: ' + event.error);
+                stopListening();
+            };
+
+            recognition.onend = function() {
+                isListening = false;
+                if (shouldKeepListening && !endInterviewBtn.disabled) {
+                    setTimeout(() => {
+                        try {
+                            recognition.start();
+                        } catch (e) {
+                            updateStatus('idle', 'Microphone paused. Click Start Microphone.');
+                            startMicBtn.disabled = false;
+                            stopMicBtn.disabled = true;
+                        }
+                    }, 1000);
+                } else {
+                    startMicBtn.disabled = false;
+                    stopMicBtn.disabled = true;
+                }
+            };
+
+            return true;
+        }
+
+        // Update status
+        function updateStatus(status, message) {
+            statusIndicator.className = `status-indicator status-${status}`;
+            statusText.textContent = message;
+        }
+
+        // Update live transcript
+        function updateLiveTranscript(final, interim) {
+            liveTranscript.innerHTML = `
+                <div><strong>You:</strong> ${final}</div>
+                ${interim ? `<div style="color: #666;">${interim}</div>` : ''}
+            `;
+        }
+
+        // Add message to chat
+        function addMessage(type, content) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message message-${type}`;
+            
+            let label = 'Interviewer';
+            if (type === 'user') {
+                label = 'You';
+            } else if (type === 'encouragement') {
+                label = 'Interviewer';
+            }
+            
+            // Simple markdown rendering for feedback content
+            let renderedContent = content;
+            if (type === 'ai' && content.includes('##')) {
+                renderedContent = renderMarkdown(content);
+            }
+            
+            messageDiv.innerHTML = `
+                <strong>${label}:</strong>
+                <div class="message-content">${renderedContent}</div>
+                <small style="opacity: 0.7;">${new Date().toLocaleTimeString()}</small>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function renderMarkdown(text) {
+            // Simple markdown rendering
+            return text
+                // Headers
+                .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                // Horizontal rules
+                .replace(/^---$/gim, '<hr>')
+                // Bold text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                // Lists
+                .replace(/^- (.*$)/gim, '<li>$1</li>')
+                .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+                // Line breaks
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>')
+                // Wrap in paragraphs
+                .replace(/^(?!<[hul])/gm, '<p>')
+                .replace(/(?<![>])$/gm, '</p>');
+        }
+
+        // Start listening
+        function startListening() {
+            if (!recognition) {
+                if (!initSpeechRecognition()) return;
+            }
+            shouldKeepListening = true;
+            try {
+                recognition.start();
+            } catch (e) {
+                console.error('Error starting recognition:', e);
+            }
+        }
+
+        // Stop listening
+        function stopListening() {
+            shouldKeepListening = false;
+            if (recognition) {
+                recognition.stop();
+            }
+            updateStatus('idle', 'Microphone stopped');
+        }
+
+        // Process transcript
+        async function processTranscript(transcript) {
+            try {
+                // Add user answer to chat history immediately
+                addMessage('user', transcript);
+                
+                const response = await fetch(`${BACKEND_URL}/process_answer`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        session_id: sessionId,
+                        transcript: transcript
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    console.log('DEBUG: Received response data:', data);
+                    
+                    // Check for encouragement messages in chat history
+                    if (data.chat_history) {
+                        console.log('DEBUG: Chat history length:', data.chat_history.length);
+                        const lastMessage = data.chat_history[data.chat_history.length - 1];
+                        console.log('DEBUG: Last message:', lastMessage);
+                        
+                        if (lastMessage && lastMessage.type === 'encouragement' && lastMessage.content) {
+                            console.log('DEBUG: Found encouragement message:', lastMessage.content);
+                            addMessage('encouragement', lastMessage.content);
+                        } else {
+                            console.log('DEBUG: No encouragement message found');
+                        }
+                    } else {
+                        console.log('DEBUG: No chat history in response');
+                    }
+                    
+                    if (data.next_question) {
+                        addMessage('ai', data.next_question);
+                    }
+                    if (data.completed) {
+                        endInterview();
+                    }
+                } else {
+                    console.error('Error processing transcript:', data.error);
+                }
+            } catch (error) {
+                console.error('Error processing transcript:', error);
+            }
+        }
+
+        // Timer functions
+        function startTimer() {
+            startTime = Date.now();
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function updateTimer() {
+            if (!startTime) return;
+
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const remaining = Math.max(0, 1800 - elapsed);
+
+            const elapsedMins = Math.floor(elapsed / 60);
+            const elapsedSecs = elapsed % 60;
+            const remainingMins = Math.floor(remaining / 60);
+            const remainingSecs = remaining % 60;
+
+            timeElapsed.textContent = `${elapsedMins.toString().padStart(2, '0')}:${elapsedSecs.toString().padStart(2, '0')}`;
+            timeRemaining.textContent = `${remainingMins.toString().padStart(2, '0')}:${remainingSecs.toString().padStart(2, '0')}`;
+
+            if (remaining <= 0) {
+                stopTimer();
+                updateStatus('idle', "Time's up! Interview completed.");
+                endInterview();
+            }
+        }
+
+        // Upload resume
+        async function uploadResume(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('user_id', currentUserId);
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/upload_resume`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    sessionId = data.session_id;
+                    updateStatus('idle', 'Resume uploaded successfully!');
+                    checkStartButton();
+                } else {
+                    alert('Error uploading resume: ' + (data.detail || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error uploading resume:', error);
+                alert('Error uploading resume');
+            }
+        }
+
+        // Start interview
+        async function startInterview() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/start_interview`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        session_id: sessionId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    setupSection.classList.add('hidden');
+                    interviewSection.classList.remove('hidden');
+
+                    const firstQuestion = data.first_question || data.current_question || "Can you tell me about your background and experience?";
+                    addMessage('ai', firstQuestion);
+
+                    startTimer();
+
+                    updateStatus('idle', 'Interview started! Click "Start Microphone" to begin speaking.');
+                } else {
+                    alert('Error starting interview: ' + (data.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error starting interview:', error);
+                alert('Error starting interview');
+            }
+        }
+
+        // End interview
+        async function endInterview() {
+            shouldKeepListening = false;
+            stopListening();
+            stopTimer();
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/end_interview_early`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        session_id: sessionId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (data.feedback) {
+                        addMessage('ai', 'Interview completed! Here is your feedback:');
+                        addMessage('ai', data.feedback);
+                    }
+                    updateStatus('idle', 'Interview completed successfully!');
+                } else {
+                    console.error('Error ending interview:', data.detail);
+                }
+            } catch (error) {
+                console.error('Error ending interview:', error);
+            }
+        }
+
+        // Check if start button should be enabled
+        function checkStartButton() {
+            const hasUserId = userIdInput.value.trim().length > 0;
+            startInterviewBtn.disabled = !(sessionId && hasUserId);
+        }
+
+        // Event listeners
+        resumeUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                currentUserId = userIdInput.value.trim();
+                progressCache = null;
+                historyPanel.classList.add('hidden');
+                viewHistoryBtn.textContent = 'View Full History';
+                if (!currentUserId) {
+                    alert('Please enter User ID first.');
+                    resumeUpload.value = '';
+                    return;
+                }
+                uploadResume(file);
+            }
+        });
+
+        userIdInput.addEventListener('input', checkStartButton);
+        exportHistoryBtn.addEventListener('click', exportHistoryCsv);
+
+        startInterviewBtn.addEventListener('click', startInterview);
+        viewHistoryBtn.addEventListener('click', toggleHistoryPanel);
+        startMicBtn.addEventListener('click', startListening);
+        stopMicBtn.addEventListener('click', stopListening);
+        endInterviewBtn.addEventListener('click', endInterview);
+        restartInterviewBtn.addEventListener('click', restartInterview);
+
+        // Export history to CSV
+        async function exportHistoryCsv() {
+            if (isExportingHistory) return;
+            
+            isExportingHistory = true;
+            exportHistoryBtn.disabled = true;
+            const originalText = exportHistoryBtn.textContent;
+            exportHistoryBtn.textContent = 'Exporting...';
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/get_progress?user_id=${currentUserId}`);
+                const data = await response.json();
+
+                if (response.ok && data.attempts && data.attempts.length > 0) {
+                    const csvContent = generateCSV(data.attempts);
+                    downloadCSV(csvContent, `interview_history_${currentUserId || 'user'}.csv`);
+                } else {
+                    alert('No history data available to export.');
+                }
+            } catch (error) {
+                console.error('Error exporting history:', error);
+                alert('Error exporting history');
+            } finally {
+                isExportingHistory = false;
+                exportHistoryBtn.disabled = false;
+                exportHistoryBtn.textContent = originalText;
+            }
+        }
+
+        function generateCSV(attempts) {
+            const headers = ['AttemptNumber', 'OverallScore', 'TechnicalScore', 'CommunicationScore', 'Decision', 'CompletedAt'];
+            const rows = attempts.map((attempt, idx) => {
+                const completedAt = attempt.ended_at ? new Date(attempt.ended_at * 1000).toISOString() : '';
+                return [
+                    idx + 1,
+                    attempt.score || '',
+                    attempt.scores?.technical || '',
+                    attempt.scores?.communication || '',
+                    attempt.recommendation?.decision || '',
+                    completedAt
+                ].map(value => `"${String(value).replace(/"/g, '""')}"`).join(',');
+            });
+            
+            return [headers.join(','), ...rows].join('\n');
+        }
+
+        function downloadCSV(content, filename) {
+            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        // Toggle history panel
+        async function toggleHistoryPanel() {
+            if (historyPanel.classList.contains('hidden')) {
+                try {
+                    const response = await fetch(`${BACKEND_URL}/get_progress?user_id=${currentUserId}`);
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        renderHistoryPanel(data);
+                        historyPanel.classList.remove('hidden');
+                        viewHistoryBtn.textContent = 'Hide Full History';
+                    } else {
+                        alert('No history data available yet for this user.');
+                    }
+                } catch (error) {
+                    console.error('Error fetching history:', error);
+                    alert('Error fetching history data.');
+                }
+            } else {
+                historyPanel.classList.add('hidden');
+                viewHistoryBtn.textContent = 'View Full History';
+            }
+        }
+
+        function renderHistoryPanel(data) {
+            const attempts = Array.isArray(data?.attempts) ? data.attempts : [];
+            
+            if (attempts.length === 0) {
+                historySummary.innerHTML = '<div>No interview history available.</div>';
+                historyChart.innerHTML = '<div class="history-chart-title">Score Trend (Overall)</div><div class="history-empty">No chart data available.</div>';
+                historyTable.innerHTML = '<div class="history-empty">No attempts found.</div>';
+                return;
+            }
+
+            const latest = attempts[attempts.length - 1];
+            const trendText = attempts.length > 1 ? 
+                (latest.score > attempts[attempts.length - 2].score ? 'Improving' : 'Needs improvement') : 'First attempt';
+
+            // Calculate statistics
+            const scores = attempts.map(a => a.score || 0);
+            const average = scores.length > 0 ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1) : 'N/A';
+            const bestScore = scores.length > 0 ? Math.max(...scores) : 'N/A';
+            const trendUp = scores.length > 1 && scores[scores.length - 1] > scores[scores.length - 2];
+            const trendDown = scores.length > 1 && scores[scores.length - 1] < scores[scores.length - 2];
+
+            // Render summary
+            historySummary.innerHTML = `
+                <div class="progress-card">
+                    <h4>Interview Progress</h4>
+                    <div>Total interviews: ${attempts.length}</div>
+                    <div>Latest overall score: ${latest.score || 'N/A'}</div>
+                    <div>Average score: ${average}</div>
+                    <div>Best score: ${bestScore}</div>
+                    <div>Trend: ${trendText}</div>
+                    <ul>
+                        <li>Technical: ${latest.scores?.technical || 'N/A'}/10</li>
+                        <li>Communication: ${latest.scores?.communication || 'N/A'}/10</li>
+                    </ul>
+                </div>
+            `;
+
+            // Render chart
+            renderScoreTrendChart(attempts);
+
+            // Render table
+            renderHistoryTable(attempts);
+        }
+
+        function renderScoreTrendChart(attempts) {
+            if (attempts.length === 0) {
+                historyChart.innerHTML = '<div class="history-chart-title">Score Trend (Overall)</div><div class="history-empty">No chart data available.</div>';
+                return;
+            }
+
+            const width = 600;
+            const height = 200;
+            const padding = 40;
+            const scores = attempts.map(a => a.score || 0);
+            const maxScore = Math.max(...scores, 10);
+            const minScore = Math.min(...scores, 0);
+            const scoreRange = maxScore - minScore || 1;
+
+            // Generate points for the line chart
+            const points = scores.map((score, idx) => ({
+                x: padding + (idx * (width - 2 * padding) / Math.max(attempts.length - 1, 1)),
+                y: height - padding - ((score - minScore) / scoreRange) * (height - 2 * padding),
+                score: score
+            }));
+
+            const polyline = points.map(p => `${p.x},${p.y}`).join(' ');
+            const circles = points
+                .map(p => `<circle cx="${p.x}" cy="${p.y}" r="4" fill="#4facfe"><title>Score: ${p.score}</title></circle>`)
+                .join('');
+            const xLabels = points
+                .map((p, idx) => `<text x="${p.x}" y="${height - 8}" font-size="10" text-anchor="middle" fill="#6a7899">#${idx + 1}</text>`)
+                .join('');
+
+            const trendUp = scores.length > 1 && scores[scores.length - 1] > scores[scores.length - 2];
+            const trendDown = scores.length > 1 && scores[scores.length - 1] < scores[scores.length - 2];
+
+            historyChart.innerHTML = `
+                <div class="history-chart-title">Score Trend (Overall) - ${trendUp ? 'Improving' : trendDown ? 'Declining' : 'Stable'}</div>
+                <svg viewBox="0 0 ${width} ${height}" width="100%" height="190" aria-label="Interview score trend">
+                    <line x1="${padding}" y1="${padding}" x2="${padding}" y2="${height - padding}" stroke="#cfd8eb" />
+                    <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="#cfd8eb" />
+                    <text x="${padding - 10}" y="${padding + 4}" font-size="10" text-anchor="end" fill="#6a7899">10</text>
+                    <text x="${padding - 10}" y="${height - padding + 4}" font-size="10" text-anchor="end" fill="#6a7899">0</text>
+                    <polyline fill="none" stroke="#4facfe" stroke-width="3" points="${polyline}" />
+                    ${circles}
+                    ${xLabels}
+                </svg>
+            `;
+        }
+
+        function renderHistoryTable(attempts) {
+            if (attempts.length === 0) {
+                historyTable.innerHTML = '<div class="history-empty">No attempts found.</div>';
+                return;
+            }
+
+            const rows = attempts.map((attempt, idx) => {
+                const endedAt = attempt.ended_at ? new Date(attempt.ended_at * 1000).toLocaleString() : 'N/A';
+                const scores = attempt.scores || {};
+                return `
+                    <tr>
+                        <td>${idx + 1}</td>
+                        <td>${attempt.score || 'N/A'}</td>
+                        <td>${scores.technical || 'N/A'}</td>
+                        <td>${scores.communication || 'N/A'}</td>
+                        <td>${attempt.recommendation?.decision || 'N/A'}</td>
+                        <td>${endedAt}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            historyTable.innerHTML = `
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Attempt</th>
+                            <th>Overall</th>
+                            <th>Technical</th>
+                            <th>Communication</th>
+                            <th>Decision</th>
+                            <th>Completed At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Restart interview
+        function restartInterview() {
+            if (confirm('Are you sure you want to start a new interview? Current progress will be lost.')) {
+                location.reload();
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStatus('idle', 'Ready to start interview');
+            
+            // Force cache refresh
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    for(let registration of registrations) {
+                        registration.unregister();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

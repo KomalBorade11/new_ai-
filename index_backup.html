@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Mock Interview - Real-Time Voice</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .setup-section {
+            padding: 30px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 233, 123, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(250, 112, 154, 0.4);
+        }
+
+        .interview-section {
+            padding: 30px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .status-listening {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+        }
+
+        .status-idle {
+            background: #f8f9fa;
+            color: #6c757d;
+        }
+
+        .status-processing {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #333;
+        }
+
+        .transcript-area {
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 150px;
+            background: #f8f9fa;
+            margin-bottom: 20px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .transcript-user {
+            color: #007bff;
+            font-weight: 600;
+        }
+
+        .transcript-ai {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .transcript-interim {
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .timer {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .chat-messages {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 20px;
+            background: #f8f9fa;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .message-user {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: 20%;
+        }
+
+        .message-ai {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            margin-right: 20%;
+        }
+
+        .message-feedback {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .feedback-structured {
+            margin-top: 10px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .score-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .score-card {
+            background: rgba(255, 255, 255, 0.18);
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .score-card .label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .score-card .value {
+            font-size: 20px;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
+        .feedback-section {
+            margin-bottom: 10px;
+        }
+
+        .feedback-section h4 {
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .feedback-section ul {
+            margin-left: 18px;
+        }
+
+        .progress-card {
+            margin-top: 16px;
+            background: #f3f7ff;
+            border: 1px solid #d7e4ff;
+            border-radius: 10px;
+            padding: 14px;
+            color: #1e2a44;
+        }
+
+        .progress-card h4 {
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+
+        .progress-card ul {
+            margin-left: 18px;
+            margin-top: 6px;
+        }
+
+        .history-panel {
+            margin-top: 16px;
+            border: 1px solid #d9dee8;
+            border-radius: 10px;
+            padding: 14px;
+            background: #ffffff;
+        }
+
+        .history-empty {
+            padding: 8px 0;
+            color: #5f6b85;
+            font-style: italic;
+        }
+
+        .history-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        
+        .history-controls .btn {
+            padding: 8px 14px;
+            font-size: 14px;
+        }
+
+        .history-table-wrap {
+            overflow-x: auto;
+        }
+
+        .history-chart {
+            margin: 10px 0 14px 0;
+            border: 1px solid #e4e8f0;
+            border-radius: 8px;
+            background: #fcfdff;
+            padding: 8px;
+        }
+
+        .history-chart-title {
+            font-size: 13px;
+            color: #3a4b72;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .history-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 8px 0;
+        }
+
+        .history-badge {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            border: 1px solid transparent;
+        }
+
+        .history-badge-best {
+            background: #fff7e6;
+            color: #a16207;
+            border-color: #f7d6a0;
+        }
+
+        .history-badge-trend-up {
+            background: #eafaf1;
+            color: #166534;
+            border-color: #b7ebcc;
+        }
+
+        .history-badge-trend-down {
+            background: #fdecec;
+            color: #991b1b;
+            border-color: #f6b8b8;
+        }
+
+        .history-badge-trend-flat {
+            background: #eef2ff;
+            color: #3730a3;
+            border-color: #c7d2fe;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .history-table th,
+        .history-table td {
+            border: 1px solid #e4e8f0;
+            padding: 8px 10px;
+            text-align: left;
+        }
+
+        .history-table th {
+            background: #f3f7ff;
+            font-weight: 700;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .message-user,
+            .message-ai {
+                margin-left: 10px;
+                margin-right: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Setup Section -->
+        <div id="setup-section" class="setup-section">
+            <div class="form-group">
+                <label for="user-id">User ID (for tracking progress)</label>
+                <input type="text" id="user-id" placeholder="e.g., hp_user_1 or your email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="resume-upload">Upload Your Resume (PDF)</label>
+                <input type="file" id="resume-upload" accept=".pdf" required>
+            </div>
+
+            
+            <button id="start-interview-btn" class="btn btn-primary" disabled>
+                Start Interview
+            </button>
+        </div>
+
+        <!-- Interview Section -->
+        <div id="interview-section" class="interview-section hidden">
+            <div id="status-indicator" class="status-indicator status-idle">
+                <span id="status-text">Ready to start interview</span>
+            </div>
+
+            <div class="timer">
+                <div>Time Remaining: <span id="time-remaining">30:00</span></div>
+                <div>Elapsed: <span id="time-elapsed">00:00</span></div>
+            </div>
+
+            <div class="controls">
+                <button id="start-mic-btn" class="btn btn-success">🎤 Start Microphone</button>
+                <button id="stop-mic-btn" class="btn btn-danger" disabled>⏹️ Stop Microphone</button>
+                <button id="end-interview-btn" class="btn btn-secondary">🏁 End Interview</button>
+                <button id="view-history-btn" class="btn btn-primary">📈 View Full History</button>
+                <button id="restart-interview-btn" class="btn btn-warning">🔄 Start New Interview</button>
+            </div>
+
+            <div class="transcript-area">
+                <div id="live-transcript"></div>
+            </div>
+
+            <div class="chat-messages" id="chat-messages">
+                <!-- Messages will be added here -->
+            </div>
+
+            <div id="history-panel" class="history-panel hidden">
+                <div class="history-controls">
+                    <button id="export-history-btn" class="btn btn-secondary">Export CSV</button>
+                </div>
+                <div id="history-summary"></div>
+                <div id="history-chart" class="history-chart"></div>
+                <div id="history-table" class="history-table-wrap"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let sessionId = null;
+        let recognition = null;
+        let isListening = false;
+        let startTime = null;
+        let timerInterval = null;
+        let currentTranscript = '';
+        let chatHistory = [];
+        let shouldKeepListening = false;
+        let currentUserId = '';
+        let progressCache = null;
+        let isHistoryLoading = false;
+        let isExportingHistory = false;
+
+        // DOM elements
+        const setupSection = document.getElementById('setup-section');
+        const interviewSection = document.getElementById('interview-section');
+        const userIdInput = document.getElementById('user-id');
+        const resumeUpload = document.getElementById('resume-upload');
+        const startInterviewBtn = document.getElementById('start-interview-btn');
+        const startMicBtn = document.getElementById('start-mic-btn');
+        const stopMicBtn = document.getElementById('stop-mic-btn');
+        const endInterviewBtn = document.getElementById('end-interview-btn');
+        const viewHistoryBtn = document.getElementById('view-history-btn');
+        const restartInterviewBtn = document.getElementById('restart-interview-btn');
+        const statusIndicator = document.getElementById('status-indicator');
+        const statusText = document.getElementById('status-text');
+        const liveTranscript = document.getElementById('live-transcript');
+        const chatMessages = document.getElementById('chat-messages');
+        const timeRemaining = document.getElementById('time-remaining');
+        const timeElapsed = document.getElementById('time-elapsed');
+        const historyPanel = document.getElementById('history-panel');
+        const exportHistoryBtn = document.getElementById('export-history-btn');
+        const historySummary = document.getElementById('history-summary');
+        const historyChart = document.getElementById('history-chart');
+        const historyTable = document.getElementById('history-table');
+
+        // Backend URL - Dynamic port detection
+        const BACKEND_URL = window.location.origin;
+
+        // Initialize speech recognition
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+            if (!SpeechRecognition) {
+                alert('Speech recognition is not supported in this browser. Please use Chrome or Edge.');
+                return false;
+            }
+
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = function() {
+                isListening = true;
+                shouldKeepListening = true;
+                updateStatus('listening', '🎤 Listening... Speak now');
+                startMicBtn.disabled = true;
+                stopMicBtn.disabled = false;
+            };
+
+            recognition.onresult = function(event) {
+                let finalTranscript = '';
+                let interimTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+
+                if (finalTranscript) {
+                    currentTranscript += finalTranscript;
+                    updateLiveTranscript(currentTranscript, interimTranscript);
+
+                    // Send to backend for processing
+                    processTranscript(currentTranscript);
+                    currentTranscript = ''; // Reset for next segment
+                } else {
+                    updateLiveTranscript(currentTranscript, interimTranscript);
+                }
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                updateStatus('idle', '❌ Error: ' + event.error);
+                stopListening();
+            };
+
+            recognition.onend = function() {
+                isListening = false;
+                if (shouldKeepListening && !endInterviewBtn.disabled) {
+                    // Keep interview continuous without requiring manual restart each turn.
+                    setTimeout(() => {
+                        try {
+                            recognition.start();
+                        } catch (e) {
+                            updateStatus('idle', 'Microphone paused. Click Start Microphone.');
+                            startMicBtn.disabled = false;
+                            stopMicBtn.disabled = true;
+                        }
+                    }, 300);
+                    return;
+                }
+                updateStatus('idle', 'Microphone stopped');
+                startMicBtn.disabled = false;
+                stopMicBtn.disabled = true;
+            };
+
+            return true;
+        }
+
+        // Update status indicator
+        function updateStatus(type, text) {
+            statusIndicator.className = `status-indicator status-${type}`;
+            statusText.textContent = text;
+        }
+
+        // Update live transcript display
+        function updateLiveTranscript(finalText, interimText) {
+            liveTranscript.innerHTML = `
+                <div class="transcript-user">You: ${finalText}</div>
+                ${interimText ? `<div class="transcript-interim">${interimText}</div>` : ''}
+            `;
+        }
+
+        // Add message to chat
+        function addMessage(type, content, timestamp = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message message-${type}`;
+
+            const time = timestamp ? new Date(timestamp * 1000).toLocaleTimeString() : new Date().toLocaleTimeString();
+
+            messageDiv.innerHTML = `
+                <strong>${type === 'user' ? 'You' : type === 'ai' ? 'AI Interviewer' : 'System'}:</strong>
+                <div>${content}</div>
+                <small style="opacity: 0.7;">${time}</small>
+            `;
+
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Store in history
+            chatHistory.push({
+                type: type,
+                content: content,
+                timestamp: timestamp || Date.now() / 1000
+            });
+        }
+
+        function escapeHtml(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function renderList(items) {
+            if (!Array.isArray(items) || items.length === 0) return '<ul><li>N/A</li></ul>';
+            return `<ul>${items.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
+        }
+
+        function addStructuredFeedbackMessage(textFeedback, structured, timestamp = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message message-feedback';
+            const time = timestamp ? new Date(timestamp * 1000).toLocaleTimeString() : new Date().toLocaleTimeString();
+
+            const scores = structured?.scores || {};
+            const recommendation = structured?.recommendation || {};
+            const plan = structured?.plan || {};
+
+            messageDiv.innerHTML = `
+                <strong>System:</strong>
+                <div>${escapeHtml(textFeedback || 'Interview feedback generated.')}</div>
+                <div class="feedback-structured">
+                    <div class="score-grid">
+                        <div class="score-card">
+                            <div class="label">Technical</div>
+                            <div class="value">${escapeHtml(scores.technical ?? 'N/A')}/10</div>
+                        </div>
+                        <div class="score-card">
+                            <div class="label">Communication</div>
+                            <div class="value">${escapeHtml(scores.communication ?? 'N/A')}/10</div>
+                        </div>
+                    </div>
+                    <div class="feedback-section">
+                        <h4>Summary</h4>
+                        <div>${escapeHtml(structured?.summary || 'N/A')}</div>
+                    </div>
+                    <div class="feedback-section">
+                        <h4>Strengths</h4>
+                        ${renderList(structured?.strengths)}
+                    </div>
+                    <div class="feedback-section">
+                        <h4>Improvements</h4>
+                        ${renderList(structured?.improvements)}
+                    </div>
+                    <div class="feedback-section">
+                        <h4>Week 1 Plan</h4>
+                        ${renderList(plan?.week_1)}
+                    </div>
+                    <div class="feedback-section">
+                        <h4>Week 2 Plan</h4>
+                        ${renderList(plan?.week_2)}
+                    </div>
+                    <div class="feedback-section">
+                        <h4>Recommendation: ${escapeHtml(recommendation?.decision || 'N/A')}</h4>
+                        <div>${escapeHtml(recommendation?.reason || 'N/A')}</div>
+                    </div>
+                </div>
+                <small style="opacity: 0.7;">${time}</small>
+            `;
+
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            chatHistory.push({
+                type: 'feedback',
+                content: textFeedback || '',
+                structured: structured || {},
+                timestamp: timestamp || Date.now() / 1000
+            });
+        }
+
+        function renderProgressSummary(progressData) {
+            if (!progressData || !Array.isArray(progressData.attempts)) return '';
+
+            const latest = progressData.attempts[progressData.attempts.length - 1];
+            const improvement = progressData.improvement || {};
+            const trend = improvement.trend || 'no_data';
+            const trendText =
+                trend === 'improved'
+                    ? `Improved by ${improvement.delta}`
+                    : trend === 'declined'
+                    ? `Dropped by ${Math.abs(improvement.delta || 0)}`
+                    : trend === 'same'
+                    ? 'No score change from previous attempt'
+                    : 'Not enough attempts to compare yet';
+
+            return `
+                <div class="progress-card">
+                    <h4>Progress Tracker</h4>
+                    <div>Total interviews: ${escapeHtml(progressData.total_interviews)}</div>
+                    <div>Latest overall score: ${escapeHtml(latest?.score ?? 'N/A')}</div>
+                    <div>Trend: ${escapeHtml(trendText)}</div>
+                    <ul>
+                        <li>Technical: ${escapeHtml(latest?.scores?.technical ?? 'N/A')}/10</li>
+                        <li>Communication: ${escapeHtml(latest?.scores?.communication ?? 'N/A')}/10</li>
+                    </ul>
+                </div>
+            `;
+        }
+
+        
+        function renderHistoryPanel(progressData) {
+            const attempts = Array.isArray(progressData?.attempts) ? progressData.attempts : [];
+            const filteredAttempts = attempts;
+
+            let average = 0;
+            if (filteredAttempts.length > 0) {
+                const total = filteredAttempts.reduce((sum, item) => sum + Number(item.score || 0), 0);
+                average = (total / filteredAttempts.length).toFixed(2);
+            }
+
+            const bestScore = filteredAttempts.length
+                ? Math.max(...filteredAttempts.map(item => Number(item.score || 0)))
+                : null;
+            const latestScore = filteredAttempts.length
+                ? Number(filteredAttempts[filteredAttempts.length - 1].score || 0)
+                : null;
+            const previousScore = filteredAttempts.length >= 2
+                ? Number(filteredAttempts[filteredAttempts.length - 2].score || 0)
+                : null;
+            const delta = latestScore !== null && previousScore !== null
+                ? Number((latestScore - previousScore).toFixed(2))
+                : null;
+            const trendLabel = delta === null
+                ? 'Not enough data'
+                : delta > 0
+                ? `Up +${delta}`
+                : delta < 0
+                ? `Down ${delta}`
+                : 'Flat 0';
+            const trendClass = delta === null
+                ? 'history-badge-trend-flat'
+                : delta > 0
+                ? 'history-badge-trend-up'
+                : delta < 0
+                ? 'history-badge-trend-down'
+                : 'history-badge-trend-flat';
+
+            historySummary.innerHTML = `
+                <div><strong>Attempts shown:</strong> ${escapeHtml(filteredAttempts.length)}</div>
+                <div><strong>Average score:</strong> ${escapeHtml(filteredAttempts.length ? average : 'N/A')}</div>
+                <div class="history-badges">
+                    <span class="history-badge history-badge-best">Best Score: ${escapeHtml(bestScore !== null ? bestScore : 'N/A')}</span>
+                    <span class="history-badge ${trendClass}">Trend: ${escapeHtml(trendLabel)}</span>
+                </div>
+            `;
+
+            if (filteredAttempts.length === 0) {
+                historyChart.innerHTML = '<div class="history-chart-title">Score Trend (Overall)</div><div class="history-empty">No chart data available.</div>';
+                historyTable.innerHTML = '<div class="history-empty">No attempts found.</div>';
+                return;
+            }
+
+            renderScoreTrendChart(filteredAttempts);
+
+            const rows = filteredAttempts
+                .map((attempt, idx) => {
+                    const endedAt = attempt.ended_at
+                        ? new Date(attempt.ended_at * 1000).toLocaleString()
+                        : 'N/A';
+                    return `
+                        <tr>
+                            <td>${idx + 1}</td>
+                            <td>${escapeHtml(attempt.score ?? 'N/A')}</td>
+                            <td>${escapeHtml(attempt.scores?.technical ?? 'N/A')}</td>
+                            <td>${escapeHtml(attempt.scores?.communication ?? 'N/A')}</td>
+                            <td>${escapeHtml(attempt.recommendation?.decision || 'N/A')}</td>
+                            <td>${escapeHtml(endedAt)}</td>
+                        </tr>
+                    `;
+                })
+                .join('');
+
+            historyTable.innerHTML = `
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Overall</th>
+                            <th>Technical</th>
+                            <th>Communication</th>
+                            <th>Decision</th>
+                            <th>Completed At</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            `;
+        }
+
+        function getFilteredAttemptsForExport() {
+            const attempts = Array.isArray(progressCache?.attempts) ? progressCache.attempts : [];
+            return attempts;
+        }
+
+        function exportHistoryCsv() {
+            if (isExportingHistory) return;
+            const attempts = getFilteredAttemptsForExport();
+            if (!attempts.length) {
+                alert('No history data available to export.');
+                return;
+            }
+            isExportingHistory = true;
+            exportHistoryBtn.disabled = true;
+            const originalText = exportHistoryBtn.textContent;
+            exportHistoryBtn.textContent = '⏳ Exporting...';
+
+            try {
+                const headers = [
+                    'AttemptNumber',
+                    'OverallScore',
+                    'TechnicalScore',
+                    'CommunicationScore',
+                    'Decision',
+                    'CompletedAt'
+                ];
+
+                const csvRows = [headers.join(',')];
+                attempts.forEach((attempt, idx) => {
+                    const completedAt = attempt.ended_at
+                        ? new Date(attempt.ended_at * 1000).toISOString()
+                        : '';
+                    const row = [
+                        idx + 1,
+                        attempt.score ?? '',
+                        attempt.scores?.technical ?? '',
+                        attempt.scores?.communication ?? '',
+                        attempt.recommendation?.decision || '',
+                        completedAt
+                    ];
+                    const escaped = row.map(value => `"${String(value).replace(/"/g, '""')}"`);
+                    csvRows.push(escaped.join(','));
+                });
+
+                const csvContent = csvRows.join('\n');
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const filename = `interview_history_${currentUserId || 'user'}.csv`;
+
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            } finally {
+                isExportingHistory = false;
+                exportHistoryBtn.disabled = false;
+                exportHistoryBtn.textContent = originalText;
+            }
+        }
+
+        function renderScoreTrendChart(attempts) {
+            const width = 640;
+            const height = 190;
+            const padding = 32;
+            const chartW = width - (padding * 2);
+            const chartH = height - (padding * 2);
+            const maxScore = 10;
+            const minScore = 0;
+
+            const points = attempts.map((item, idx) => {
+                const score = Number(item.score || 0);
+                const x = padding + ((attempts.length <= 1 ? 0 : idx / (attempts.length - 1)) * chartW);
+                const y = padding + ((maxScore - score) / (maxScore - minScore)) * chartH;
+                return { x, y, score };
+            });
+
+            const firstScore = points.length ? points[0].score : 0;
+            const lastScore = points.length ? points[points.length - 1].score : 0;
+            const trendDelta = Number((lastScore - firstScore).toFixed(2));
+            const trendUp = trendDelta > 0;
+            const trendDown = trendDelta < 0;
+            const lineColor = trendUp ? '#16a34a' : trendDown ? '#dc2626' : '#4f46e5';
+
+            const polyline = points.map(p => `${p.x},${p.y}`).join(' ');
+            const circles = points
+                .map(p => `<circle cx="${p.x}" cy="${p.y}" r="4" fill="${lineColor}"><title>Score: ${p.score}</title></circle>`)
+                .join('');
+            const xLabels = points
+                .map((p, idx) => `<text x="${p.x}" y="${height - 8}" font-size="10" text-anchor="middle" fill="#6a7899">#${idx + 1}</text>`)
+                .join('');
+
+            historyChart.innerHTML = `
+                <div class="history-chart-title">Score Trend (Overall) - ${trendUp ? 'Improving' : trendDown ? 'Declining' : 'Stable'}</div>
+                <svg viewBox="0 0 ${width} ${height}" width="100%" height="190" aria-label="Interview score trend">
+                    <line x1="${padding}" y1="${padding}" x2="${padding}" y2="${height - padding}" stroke="#cfd8eb" />
+                    <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="#cfd8eb" />
+                    <text x="${padding - 10}" y="${padding + 4}" font-size="10" text-anchor="end" fill="#6a7899">10</text>
+                    <text x="${padding - 10}" y="${height - padding + 4}" font-size="10" text-anchor="end" fill="#6a7899">0</text>
+                    <polyline fill="none" stroke="${lineColor}" stroke-width="3" points="${polyline}" />
+                    ${circles}
+                    ${xLabels}
+                </svg>
+            `;
+        }
+
+        async function fetchProgressData() {
+            if (!currentUserId) return;
+            if (isHistoryLoading) return null;
+            isHistoryLoading = true;
+            const previousText = viewHistoryBtn.textContent;
+            viewHistoryBtn.disabled = true;
+            viewHistoryBtn.textContent = '⏳ Loading...';
+            try {
+                const response = await fetch(`${BACKEND_URL}/progress?user_id=${encodeURIComponent(currentUserId)}`);
+                const data = await response.json();
+                if (!response.ok) return null;
+                progressCache = data;
+                return data;
+            } catch (error) {
+                console.error('Error fetching progress:', error);
+                return null;
+            } finally {
+                isHistoryLoading = false;
+                viewHistoryBtn.disabled = false;
+                if (historyPanel.classList.contains('hidden')) {
+                    viewHistoryBtn.textContent = previousText.includes('Hide') ? '📈 View Full History' : previousText;
+                } else {
+                    viewHistoryBtn.textContent = '📉 Hide Full History';
+                }
+            }
+        }
+
+        async function fetchProgressAndRender() {
+            const data = await fetchProgressData();
+            if (!data) return;
+
+            const summaryHtml = renderProgressSummary(data);
+            if (!summaryHtml) return;
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message message-feedback';
+            messageDiv.innerHTML = `
+                <strong>System:</strong>
+                <div>Your interview history and improvement summary:</div>
+                ${summaryHtml}
+                <small style="opacity: 0.7;">${new Date().toLocaleTimeString()}</small>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            if (!historyPanel.classList.contains('hidden')) {
+                renderHistoryPanel(data);
+            }
+        }
+
+        // Start listening
+        function startListening() {
+            if (!recognition) {
+                if (!initSpeechRecognition()) return;
+            }
+            shouldKeepListening = true;
+
+            try {
+                recognition.start();
+            } catch (error) {
+                console.error('Error starting recognition:', error);
+                updateStatus('idle', '❌ Error starting microphone');
+            }
+        }
+
+        // Stop listening
+        function stopListening() {
+            shouldKeepListening = false;
+            if (recognition && isListening) {
+                recognition.stop();
+            }
+        }
+
+        // Process transcript with backend
+        async function processTranscript(transcript) {
+            if (!transcript.trim()) return;
+
+            updateStatus('processing', '🤖 Processing your response...');
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/process_transcript`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        transcript: transcript
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    updateStatus('idle', '❌ Error: ' + data.error);
+                    return;
+                }
+
+                // Add user message to chat
+                addMessage('user', transcript);
+
+                // Handle different response types
+                if (data.completed) {
+                    updateStatus('idle', '🎉 Interview completed!');
+                    if (data.final_feedback_structured) {
+                        addStructuredFeedbackMessage(
+                            data.final_feedback || 'Interview completed successfully!',
+                            data.final_feedback_structured
+                        );
+                    } else {
+                        addMessage('feedback', data.final_feedback || 'Interview completed successfully!');
+                    }
+                    await fetchProgressAndRender();
+                    stopTimer();
+                    endInterviewBtn.disabled = true;
+                } else if (data.feedback_phase) {
+                    updateStatus('idle', '📋 Final feedback phase');
+                    if (data.feedback_structured) {
+                        addStructuredFeedbackMessage(data.feedback, data.feedback_structured);
+                    } else {
+                        addMessage('feedback', data.feedback);
+                    }
+                } else if (data.next_question) {
+                    updateStatus('idle', 'Ready for your response');
+                    addMessage('ai', data.next_question);
+                }
+
+            } catch (error) {
+                console.error('Error processing transcript:', error);
+                updateStatus('idle', '❌ Error processing response');
+            }
+        }
+
+        // Timer functions
+        function startTimer() {
+            startTime = Date.now();
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function updateTimer() {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const remaining = Math.max(0, 1800 - elapsed); // 30 minutes
+
+            const elapsedMins = Math.floor(elapsed / 60);
+            const elapsedSecs = elapsed % 60;
+            const remainingMins = Math.floor(remaining / 60);
+            const remainingSecs = remaining % 60;
+
+            timeElapsed.textContent = `${elapsedMins.toString().padStart(2, '0')}:${elapsedSecs.toString().padStart(2, '0')}`;
+            timeRemaining.textContent = `${remainingMins.toString().padStart(2, '0')}:${remainingSecs.toString().padStart(2, '0')}`;
+
+            if (remaining <= 0) {
+                stopTimer();
+                updateStatus('idle', '⏰ Time\'s up! Interview completed.');
+                endInterview();
+            }
+        }
+
+        // Upload resume
+        async function uploadResume(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('user_id', currentUserId);
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/upload_resume`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    sessionId = data.session_id;
+                    updateStatus('idle', '✅ Resume uploaded successfully!');
+                    checkStartButton();
+                } else {
+                    alert('Error uploading resume: ' + (data.detail || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error uploading resume:', error);
+                alert('Error uploading resume');
+            }
+        }
+
+        // Start interview
+        async function startInterview() {
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/start_interview`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        session_id: sessionId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Switch to interview view
+                    setupSection.classList.add('hidden');
+                    interviewSection.classList.remove('hidden');
+
+                    // Add first question - permanent fallback
+                    const firstQuestion = data.first_question || data.current_question || "Can you tell me about your background and experience?";
+                    addMessage('ai', firstQuestion);
+
+                    // Start timer
+                    startTimer();
+
+                    updateStatus('idle', 'Interview started! Click "Start Microphone" to begin speaking.');
+                } else {
+                    alert('Error starting interview: ' + (data.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error starting interview:', error);
+                alert('Error starting interview');
+            }
+        }
+
+        // End interview
+        async function endInterview() {
+            shouldKeepListening = false;
+            stopListening();
+            stopTimer();
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/end_interview_early`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        session_id: sessionId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    updateStatus('idle', 'Interview ended early');
+                    if (data.feedback) {
+                        if (data.feedback_structured) {
+                            addStructuredFeedbackMessage(data.feedback, data.feedback_structured);
+                        } else {
+                            addMessage('feedback', data.feedback);
+                        }
+                    }
+                    await fetchProgressAndRender();
+                }
+            } catch (error) {
+                console.error('Error ending interview:', error);
+            }
+        }
+
+        // Restart interview
+        function restartInterview() {
+            // Stop any ongoing processes
+            shouldKeepListening = false;
+            stopListening();
+            stopTimer();
+            
+            // Reset variables
+            sessionId = null;
+            currentTranscript = '';
+            chatHistory = [];
+            startTime = null;
+            
+            // Clear UI
+            chatMessages.innerHTML = '';
+            liveTranscript.innerHTML = '';
+            updateStatus('idle', 'Ready to start interview');
+            
+            // Reset timer display
+            timeRemaining.textContent = '30:00';
+            timeElapsed.textContent = '00:00';
+            
+            // Hide interview section and show setup
+            interviewSection.classList.add('hidden');
+            setupSection.classList.remove('hidden');
+            
+            // Reset file inputs but keep user ID
+            resumeUpload.value = '';
+            
+            // Enable start button if user ID is filled
+            checkStartButton();
+        }
+
+        async function toggleHistoryPanel() {
+            if (historyPanel.classList.contains('hidden')) {
+                const data = progressCache || await fetchProgressData();
+                if (!data) {
+                    alert('No progress data found yet for this user.');
+                    return;
+                }
+                renderHistoryPanel(data);
+                historyPanel.classList.remove('hidden');
+                viewHistoryBtn.textContent = '📉 Hide Full History';
+            } else {
+                historyPanel.classList.add('hidden');
+                viewHistoryBtn.textContent = '📈 View Full History';
+            }
+        }
+
+        // Check if start button should be enabled
+        function checkStartButton() {
+            const hasUserId = userIdInput.value.trim().length > 0;
+            startInterviewBtn.disabled = !(sessionId && hasUserId);
+        }
+
+        // Event listeners
+        resumeUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                currentUserId = userIdInput.value.trim();
+                progressCache = null;
+                historyPanel.classList.add('hidden');
+                viewHistoryBtn.textContent = '📈 View Full History';
+                if (!currentUserId) {
+                    alert('Please enter User ID first.');
+                    resumeUpload.value = '';
+                    return;
+                }
+                uploadResume(file);
+            }
+        });
+
+                userIdInput.addEventListener('input', checkStartButton);
+                exportHistoryBtn.addEventListener('click', exportHistoryCsv);
+
+        startInterviewBtn.addEventListener('click', startInterview);
+        startMicBtn.addEventListener('click', startListening);
+        stopMicBtn.addEventListener('click', stopListening);
+        endInterviewBtn.addEventListener('click', endInterview);
+        viewHistoryBtn.addEventListener('click', toggleHistoryPanel);
+        restartInterviewBtn.addEventListener('click', restartInterview);
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initSpeechRecognition();
+            checkStartButton();
+        });
+
+        // Handle page unload
+        window.addEventListener('beforeunload', function() {
+            stopListening();
+            stopTimer();
+        });
+    </script>
+</body>
+</html>
